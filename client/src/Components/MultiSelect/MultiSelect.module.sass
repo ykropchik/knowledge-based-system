@@ -1,3 +1,11 @@
+%listItem
+    display: flex
+    align-items: center
+    width: 100%
+    padding: 7px 12px
+    cursor: pointer
+    gap: 16px
+    
 .mainContainer
     display: flex
     flex-direction: row
@@ -35,7 +43,28 @@
 
             .itemsList
                 padding: 0
-                overflow-y: scroll
+
+                .item
+                    @extend %listItem
+
+                    &:hover
+                        background-color: #e6f7ff
+                
+                .itemRemove
+                    @extend %listItem
+
+                    &:hover
+                        background-color: #ffccd1
+            
+        .borderedItem
+            @extend %listItem
+            border-bottom: 1px solid #ddd
+
+            &:hover
+                background-color: #e6f7ff
+
+            .itemContent
+                color: var(--dark-shades)
 
         .selectedHeaderContainer
             display: flex
@@ -54,31 +83,6 @@
 
                 &:hover
                     color: red
-
-        %listItem
-            display: flex
-            align-items: center
-            width: 100%
-            padding: 7px 12px
-            cursor: pointer
-            gap: 16px
-
-        .item
-            @extend %listItem
-
-            &:hover
-                background-color: #e6f7ff
-
-        .borderedItem
-            @extend %listItem
-            border-bottom: 1px solid #ddd
-
-            &:hover
-                background-color: #e6f7ff
-
-            .itemContent
-                color: var(--dark-shades)
-
 
         &Content
         color: var(--dark-shades)

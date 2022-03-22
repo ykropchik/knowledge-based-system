@@ -1,105 +1,251 @@
-import { AutoComplete, Divider, Radio, Space, Checkbox, Input, List, Button, Empty } from 'antd';
+import { Divider, Radio, Space, Checkbox, Input, InputNumber, List, Button, Empty, Select } from 'antd';
 import { PlusOutlined, DeleteOutlined, SaveOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import s from './ToleranceRangeEditor.module.sass';
+import { fetchAttributes, setAttributeValues } from '../../../Api/api';
+import toast, { Toaster } from 'react-hot-toast';
+import Placeholder from '../../../Components/Placeholder/Placeholder';
 
 const { Search } = Input;
+const { Option } = Select;
 
-function ScalarTypeEditor() {
+function ScalarTypeEditor({values, onChange}) {
+    const [list, setList] = useState(values ?? []);
+    const [value, setValue] = useState('');
+
+    useEffect(() => {
+        setList(values ?? []);
+    }, [values]);
+
+    const onAddValue = (item) => {
+        if (item && list.includes(item)) {
+            toast.error('Такое значение уже есть!');
+            return;
+        }
+
+        setValue('');
+        setList([...list, item]);
+        onChange([...list, item]);
+    }
+
+    const onInputValueChange = (e) => {
+        setValue(e.target.value);
+    }
+
+    const onRemove = (item) => {
+        setList(list.filter((value) => value !== item));
+        onChange(list.filter((value) => value !== item));
+    }
+
     return (
         <>
             <Search
-                // ref={classInput}
                 placeholder="Введите значение"
+                value={value}
                 allowClear
-                // onSearch={onAddClass}
+                onSearch={onAddValue}
+                onChange={onInputValueChange}
                 enterButton={<PlusOutlined/>}
                 style={{ marginBottom: 12 }}/>
             <List 
+                style={{ background: '#fff' }}
                 bordered
-                dataSource={[]}
+                dataSource={list}
                 locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={<span>Пусто</span>}/> }}
                 renderItem={item => (
-                    <List.Item actions={[<DeleteOutlined className={s.removeButton}/>]}>
-                    {item}
+                    <List.Item actions={[<DeleteOutlined className={s.removeButton} onClick={() => onRemove(item)}/>]}>
+                        {item}
                     </List.Item>
                 )}/>
+            <Toaster
+                position="top-right"
+                reverseOrder={false} />
         </>
     );
 }
 
-function RangeTypeEditor() {
-    return (
-        <>
-            <Input addonBefore="Единицы измерения" style={{ marginBottom: 12 }}/>
-            <Input addonBefore="Минимум" style={{ marginBottom: 12 }}/>
-            <Input addonBefore="Максимум" style={{ marginBottom: 12 }}/>
-        </>
-    );
-}
+function RangeTypeEditor({values, onChange}) {
+    const [value, setValue] = useState(values ?? { units: null, min: null, max: null });
 
-function BooleanTypeEditor() {
+    useEffect(() => {
+        setValue(values ?? { units: null, min: null, max: null });
+    }, [values]);
+
+    function onChangeValue(v) {
+        setValue({ ...value, ...v });
+        onChange({ ...value, ...v });
+    }
+
     return (
         <>
-            <Checkbox defaultChecked={false}>Да</Checkbox>
+            <Input 
+                addonBefore="Единицы измерения" 
+                style={{ marginBottom: 12, width: '80%' }} 
+                value={value.units} 
+                onChange={(e) => onChangeValue({units: e.target.value})}/>
             <br/>
-            <Checkbox defaultChecked={false}>Нет</Checkbox>
+            <InputNumber 
+                addonBefore="Минимум" 
+                style={{ marginBottom: 12, width: '80%' }}
+                value={value.min}
+                onChange={(num) => onChangeValue({min: num})}
+                controls={false}/>
+            <br/>
+            <InputNumber 
+                addonBefore="Максимум" 
+                style={{ marginBottom: 12, width: '80%' }} 
+                value={value.max} 
+                onChange={(num) => onChangeValue({max: num})} 
+                controls={false}/>
         </>
     );
 }
 
-const options = [
-    { value: 'район расположения' },
-    { value: 'тип дома' },
-    { value: 'тип объекта' },
-    { value: 'год постройки' },
-    { value: 'этажей в доме' },
-    { value: 'этаж' },
-    { value: 'тип планировки' },
-    { value: 'число комнат' },
-    { value: 'площадь' },
-];
+function BooleanTypeEditor({values, onChange}) {
+    const options = [
+        { label: 'Да', value: 'Да' },
+        { label: 'Нет', value: 'Нет' }
+    ]
 
-const attributeTypes = [
-    { value: 'Скалярный', component: <ScalarTypeEditor/> },
-    { value: 'Размерный', component: <RangeTypeEditor/> },
-    { value: 'Логический', component: <BooleanTypeEditor/> }
+    const onChangeValue = (checkedValues) => {
+        onChange(checkedValues);
+    }
+
+    return (
+        <Checkbox.Group options={options} value={values ?? []} onChange={onChangeValue}/>
+    );
+}
+
+const defaultAttributes = [
+    { name: 'какой-то признак 1'},
+    { name: 'какой-то признак 2'},
+    { name: 'какой-то признак 3'},
+    { name: 'какой-то признак 4'},
+    { name: 'какой-то признак 5'},
+    { name: 'какой-то признак 6'}
 ]
 
-export default function ToleranceRangeEditor() {
-    const [ type, setType ] = useState(0);
+const attributeTypes = [
+    'Скалярный',
+    'Размерный',
+    'Логический'
+]
 
+const attributeType = {
+    0: 'scalar',
+    1: 'range',
+    2: 'bool'
+}
+
+export default function ToleranceRangeEditor() {
+    const [isLoading, setLoading] = useState(true);
+    const [attributes, setAttributes] = useState(defaultAttributes);
+    const [id, setId] = useState(undefined);
+    const [type, setType] = useState(null);
+    const [values, setValues] = useState(undefined);
+
+    useEffect(() => {
+        let isMounted = true;
+        getAttributes(isMounted);
+
+        return () => { isMounted = false };
+    }, []);
+
+    function getAttributes(isMounted) {
+        setLoading(true);
+        fetchAttributes()
+            .then(res => {
+                if (isMounted) {
+                    setAttributes(res.result);
+                }
+            })
+            .catch(console.log)
+            .finally(() => setLoading(false))
+    }
+
+    const onSelectAttribute = (value, attribute) => {
+        setId(attribute.id);
+        setType(attribute.type);
+        setValues(attribute.possiblevalues);
+    }
+
+    const onChangeAttributeType = (e) => {
+        setType(e.target.value);
+    }
+
+    const onChangeValues = (values) => {
+        setValues(values);
+    }
+
+    const save = () => {
+        const savingPromise = setAttributeValues(id, { type: type, values: values});
+            toast.promise(savingPromise, {
+                loading: 'Сохранение ОДЗ',
+                success: res => {
+                    setAttributes(res.result);
+                    return 'ОДЗ успешно сохранено!';
+                },
+                error: 'Произошла ошибка!',
+            });
+    }
+    
     return (
         <>
             <Divider orientation="left">Возможные значения признаков</Divider>
             <div className={s.header}>
-                <AutoComplete
+                <Select
+                    showSearch
                     className={s.input}
-                    options={options}
-                    placeholder="Название признака"
-                    filterOption={(inputValue, option) =>
-                        option?.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-                    }/>
-                <Button type="primary" shape="round" icon={<SaveOutlined/>} size={'middle'}>Сохранить</Button>
+                    placeholder="Выберите признак"
+                    optionFilterProp="children"
+                    onSelect={onSelectAttribute}
+                    filterOption={(input, option) =>
+                        option.children.toUpperCase().indexOf(input.toUpperCase()) >= 0
+                    }>
+                        {
+                            attributes.map((attribute, i) => (
+                                <Option
+                                    key={i}
+                                    value ={i}
+                                    id={attribute.id}
+                                    type={attribute.type}
+                                    possiblevalues={attribute.possibleValues}>
+                                    {attribute.name}
+                                </Option>
+                            ))
+                        }
+                </Select>
+                <Button type="primary" shape="round" icon={<SaveOutlined/>} size={'middle'} onClick={save}>Сохранить</Button>
             </div>
-            <div className={s.container}>    
-                <div className={s.content}>
-                    <Divider orientation="left">Тип признака</Divider>
-                    <Radio.Group onChange={(e) => setType(e.target.value)} value={type}>
-                        <Space direction="vertical">
-                            {
-                                attributeTypes.map((item, i) => (
-                                    <Radio value={i}>{item.value}</Radio>
-                                ))
-                            }
-                        </Space>
-                    </Radio.Group>
+            {
+                id ?
+                <div className={s.container}>    
+                    <div className={s.content}>
+                        <Divider orientation="left">Тип признака</Divider>
+                        <Radio.Group onChange={onChangeAttributeType} value={type}>
+                            <Space direction="vertical">
+                                {
+                                    attributeTypes.map((item, i) => (
+                                        <Radio key={i} value={attributeType[i]}>{item}</Radio>
+                                    ))
+                                }
+                            </Space>
+                        </Radio.Group>
+                    </div>
+                    <div className={s.content}>
+                        <Divider orientation="left">Область допустимых значений</Divider>
+                        { type === null && <Placeholder text={'Выберите тип признака чтобы продолжить'}/> }
+                        { type === 'scalar' && <ScalarTypeEditor values={type === 'scalar' ? values : null} onChange={(v) => onChangeValues(v)}/> }
+                        { type === 'range' && <RangeTypeEditor values={type === 'range' ? values : null} onChange={(v) => onChangeValues(v)}/> }
+                        { type === 'bool' && <BooleanTypeEditor values={type === 'bool' ? values : null} onChange={(v) => onChangeValues(v)}/> }
+                    </div>
                 </div>
-                <div className={s.content}>
-                    <Divider orientation="left">Область допустимых значений</Divider>
-                    { attributeTypes[type].component }
-                </div>
-            </div>
+                :
+                <Placeholder text={'Выберите признак чтобы продолжить'}/>
+            }
+            <Toaster
+                position="top-right"
+                reverseOrder={false} />
         </>
     );
 }
