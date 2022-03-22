@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="85f2bf14-582c-45d5-83f5-283f5322fc0f" name="digital_ocean">
+        <fileTransfer accessType="SFTP" host="167.99.187.30" port="22" sshConfigId="4aeee1e0-150f-4e12-a2ea-c53cceb87331" sshConfig="root@167.99.187.30">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

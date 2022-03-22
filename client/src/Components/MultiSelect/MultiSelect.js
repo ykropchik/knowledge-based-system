@@ -1,48 +1,67 @@
 import { Checkbox, Empty } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import s from './MultiSelect.module.sass';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Placeholder from '../Placeholder/Placeholder';
 
-export default function MultiSelect({ items = ['1', '2', '3', '4']}) {
-    const [selectedItems, setSelectedItems] = useState([]);
+export default function MultiSelect({ items = [], selectedItems, label, onChange }) {
+    const [selected, setSelected] = useState([...selectedItems]);
+
+    useEffect(() => {
+        setSelected(selectedItems);
+    }, [selectedItems]);
+
+    function indexOf(array, obj) {
+        for (let i = 0; i < array.length; i++) {
+            if (JSON.stringify(array[i]) === JSON.stringify(obj)) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
 
     function selectAllClick() {
-        if(selectedItems.length !== items.length) {
-            setSelectedItems(items);
+        if(selected.length !== items.length) {
+            setSelected(items);
+            onChange(items);
         } else {
             removeAllSelectedItems();
         }
     }
 
     function leftSideItemClick(item) {
-        if (selectedItems.indexOf(item) < 0) {
-            setSelectedItems([].concat(selectedItems, [item]));
-        } else {
+        if (indexOf(selected, item) >= 0) {
             removeSelectedItem(item);
+        } else {
+            setSelected([].concat(selected, [item]));
+            onChange([].concat(selected, [item]));
         }
     }
 
     function removeSelectedItem(selectedItem) {
-        let selectedItemIndex = selectedItems.indexOf(selectedItem);
+        let selectedItemIndex = indexOf(selected, selectedItem);
         if (selectedItemIndex >= 0) {
-        let newSelectedItemsList = [
-            ...selectedItems.slice(0, selectedItemIndex),
-            ...selectedItems.slice(selectedItemIndex + 1),
-        ]
+            let newSelectedItemsList = [
+                ...selected.slice(0, selectedItemIndex),
+                ...selected.slice(selectedItemIndex + 1),
+            ]
 
-        setSelectedItems(newSelectedItemsList);
+            setSelected(newSelectedItemsList);
+            onChange(newSelectedItemsList);
         }
     }
 
     function removeAllSelectedItems() {
-        setSelectedItems([]);
+        setSelected([]);
+        onChange([]);
     }
 
     return (
         <div className={s.mainContainer}>
             <div className={s.column}>
                 <div className={s.borderedItem} onClick={() => selectAllClick()}>
-                    <Checkbox checked={selectedItems.length === items.length && items.length !== 0}/>
+                    <Checkbox checked={selected.length === items.length && items.length !== 0}/>
                     <span className={s.itemContent}>Выбрать все</span>
                 </div>
                 <div className={s.scrollContainer}>
@@ -51,9 +70,11 @@ export default function MultiSelect({ items = ['1', '2', '3', '4']}) {
                         items.map((item, i) => 
                             <li className={s.item} key={i} onClick={() => leftSideItemClick(item)}>
                                 {
-                                    <Checkbox name={i} checked={selectedItems.indexOf(item) >= 0} onChange={() => leftSideItemClick(item)}/>
+                                    <Checkbox 
+                                        name={i} 
+                                        checked={indexOf(selected, item) >= 0}/>
                                 }
-                                <span className={s.item_content}>{item}</span>
+                                <span className={s.item_content}>{label(item)}</span>
                             </li>
                         )
                     }
@@ -62,22 +83,28 @@ export default function MultiSelect({ items = ['1', '2', '3', '4']}) {
             </div> 
             <div className={s.column}>
                 <div className={s.selectedHeaderContainer}>
-                    <span className={s.selectedCounter}>{selectedItems.length === 0 ? 'Ничего не выбрано' : `Выбрано ${selectedItems.length}`}</span>
+                    <span className={s.selectedCounter}>{selected.length === 0 ? 'Ничего не выбрано' : `Выбрано ${selected.length}`}</span>
                     {
-                    selectedItems.length > 1
-                    ? <span className={s.clearAll} onClick={() => {removeAllSelectedItems()}}>Удалить все</span>
-                    : <></>
+                    selected.length > 1
+                    ?
+                    <span className={s.clearAll} onClick={() => {removeAllSelectedItems()}}>Удалить все</span>
+                    :
+                    <></>
                     }
                 </div>
                 <div className={s.scrollContainer}>
                     <ul className={s.itemsList}>
                     {
-                        selectedItems.map((selectedItem, i) => 
-                            <li className={s.item} key={i} onClick={e => {removeSelectedItem(selectedItem)}}>
-                                <span className={s.itemContent}>{selectedItem}</span>
-                                <DeleteOutlined className={s.delete} onClick={e => {removeSelectedItem(selectedItem)}}/>
+                        selected.length !== 0
+                        ?
+                        selected.map((item, i) => 
+                            <li className={s.itemRemove} key={i} onClick={e => {removeSelectedItem(item)}}>
+                                <span className={s.itemContent}>{label(item)}</span>
+                                <DeleteOutlined className={s.delete} onClick={e => {removeSelectedItem(item)}}/>
                             </li>
                         )
+                        :
+                        <Placeholder text={'Пусто'}/>
                     }
                     </ul>
                 </div>

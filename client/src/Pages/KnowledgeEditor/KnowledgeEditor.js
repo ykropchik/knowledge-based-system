@@ -12,8 +12,7 @@ const menuItems = [
     { title: 'Признаки', component: <AttributesEditor/> },
     { title: 'Вожможные значения признаков', component: <ToleranceRangeEditor/> },
     { title: 'Признаки ценовых классов', component: <PriceClassesEditor/> },
-    { title: 'Значения признаков для классов', component: <AttributesValueEditor/> },
-    { title: 'Проверка полноты', component: <></> }
+    { title: 'Значения признаков для классов', component: <AttributesValueEditor/> }
 ];
 
 export default function KnowledgeEditor() {
@@ -25,9 +24,8 @@ export default function KnowledgeEditor() {
                 <Menu
                     mode="inline"
                     defaultSelectedKeys={['0']}
-                    style={{ height: '100%', borderRight: 0 }}
-                    onSelect={({ key }) => setActiveMenu(menuItems[key])}
-                >
+                    style={{ height: '100%', background: '#fff' }}
+                    onSelect={({ key }) => setActiveMenu(menuItems[key])}>
                     {
                         menuItems.map((item, i) => (
                             <Menu.Item key={i} title={item.title}>{item.title}</Menu.Item>

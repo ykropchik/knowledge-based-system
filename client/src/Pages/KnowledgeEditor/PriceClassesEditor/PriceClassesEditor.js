@@ -1,36 +1,105 @@
-import { AutoComplete, Divider, Button} from 'antd';
+import { AutoComplete, Divider, Button, Select } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import s from './PriceClassesEditor.module.sass';
 import MultiSelect from '../../../Components/MultiSelect/MultiSelect';
+import { fetchAttributes, fetchPriceClasses, setAttributesToPriceClass } from '../../../Api/api';
+import Placeholder from '../../../Components/Placeholder/Placeholder';
+import toast, { Toaster } from 'react-hot-toast';
 
-const options = [
-    { value: 'до 3 млн' },
-    { value: 'от 3 млн до 5 млн' },
-    { value: 'от 5 млн до 7 млн' },
-    { value: 'от 7 млн до 9 млн' },
-    { value: 'от 9 млн до 11 млн' },
-    { value: '11 млн и более' }
-];
+const { Option } = Select;
 
 export default function PriceClassesEditor() {
+    const [classes, setClasses] = useState([]);
+    const [id, setId] = useState(null);
+    const [attributes, setAttributes] = useState([]);
+    const [selectedAttributes, setSelectedAttributes] = useState([]);
+
+    useEffect(() => {
+        let isMounted = true;
+        getClasses(isMounted);
+        getAttributes(isMounted);
+
+        return () => { isMounted = false };
+    }, [])
+
+    function getClasses(isMounted) {
+        fetchPriceClasses()
+            .then(res => {
+                if (isMounted) {
+                    setClasses(res.result);
+                }
+            })
+            .catch(console.log)
+    }
+
+    function getAttributes(isMounted) {
+        fetchAttributes()
+            .then(res => {
+                if (isMounted) {
+                    setAttributes(res.result);
+                }
+            })
+            .catch(console.log)
+    }
+
+    const onSelectClass = (value, priceClass) => {
+        setId(priceClass.id);
+        setSelectedAttributes(priceClass.priceclassattributes.map((item) => item.attribute));
+    }
+
+    const onSelectAttributes = (attributes) => {
+        setSelectedAttributes(attributes);
+    }
+
+    const onSave = () => {
+        const savePromice = setAttributesToPriceClass(id, selectedAttributes.map(attribute => attribute.id));
+            toast.promise(savePromice, {
+                loading: 'Добавление признаков ценового класса',
+                success: res => {
+                    setClasses(res.result);
+                    return 'Признаки ценового класса успешно добавлены!';
+                },
+                error: 'Произошла ошибка!',
+            });
+    }
+
     return (
         <>
             <Divider orientation="left">Признаки ценовых классов</Divider>
             <div className={s.header}>
-                <AutoComplete
+                <Select
+                    showSearch
                     className={s.input}
-                    options={options}
-                    placeholder="Название класса"
-                    allowClear
-                    filterOption={(inputValue, option) =>
-                        option?.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-                    }/>
-                <Button type="primary" shape="round" icon={<SaveOutlined/>} size={'middle'}>Сохранить</Button>
+                    placeholder="Выберите класс"
+                    optionFilterProp="children"
+                    onSelect={onSelectClass}
+                    filterOption={(input, option) =>
+                        option.children.toUpperCase().indexOf(input.toUpperCase()) >= 0
+                    }>
+                        {
+                            classes.map((priceClass, i) => (
+                                <Option
+                                    key={i}
+                                    value ={i}
+                                    id={priceClass.id}
+                                    priceclassattributes={priceClass.priceClassAttributes}>
+                                    {priceClass.name}
+                                </Option>
+                            ))
+                        }
+                </Select>
+                <Button type="primary" shape="round" icon={<SaveOutlined/>} size={'middle'} onClick={onSave}>Сохранить</Button>
             </div>
-            <>
-                <MultiSelect/>
-            </>
+            {
+                id ?
+                <MultiSelect items={attributes} selectedItems={selectedAttributes} label={item => item.name} onChange={onSelectAttributes}/>
+                :
+                <Placeholder text={'Выберите класс чтобы продолжить'}/>
+            }
+            <Toaster
+                position="top-right"
+                reverseOrder={false} />
         </>
     );
 }
