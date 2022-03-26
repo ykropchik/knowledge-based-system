@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\PriceClassAttribute;
 use App\Repository\PriceClassRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -25,13 +26,13 @@ class PriceClass
     private $name;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Attribute::class)
+     * @ORM\ManyToMany(targetEntity=PriceClassAttribute::class)
      */
-    private $Attributes;
+    private $priceClassAttributes;
 
     public function __construct()
     {
-        $this->Attributes = new ArrayCollection();
+        $this->priceClassAttributes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -52,26 +53,76 @@ class PriceClass
     }
 
     /**
-     * @return Collection<int, Attribute>
+     * @return Collection<int, PriceClassAttribute>
      */
-    public function getAttributes(): Collection
+    public function getPriceClassAttributes(): Collection
     {
-        return $this->Attributes;
+        return $this->priceClassAttributes;
     }
 
-    public function addAttribute(Attribute $attribute): self
+    public function addPriceClassAttribute(PriceClassAttribute $priceClassAttribute): self
     {
-        if (!$this->Attributes->contains($attribute)) {
-            $this->Attributes[] = $attribute;
+        if (!$this->priceClassAttributes->contains($priceClassAttribute)) {
+            $this->priceClassAttributes[] = $priceClassAttribute;
         }
 
         return $this;
     }
 
-    public function removeAttribute(Attribute $attribute): self
+    public function removePriceClassAttribute(PriceClassAttribute $priceClassAttribute): self
     {
-        $this->Attributes->removeElement($attribute);
+        $this->priceClassAttributes->removeElement($priceClassAttribute);
 
+        return $this;
+    }
+
+    public function removeObsoleteAttributes($em, array $newAttributes): self
+    {
+        $priceClassAttributes = $this->getPriceClassAttributes();
+        $attributesForDeleting = [];
+
+        foreach ($priceClassAttributes as $priceClassAttribute) {
+            $attribute = $priceClassAttribute->getAttribute();
+
+            if (!in_array($attribute, $newAttributes)) {
+                $attributesForDeleting[] = $priceClassAttribute;
+            }
+        }
+
+        foreach ($attributesForDeleting as $attributeForDeleting) {
+            $this->removePriceClassAttribute($attributeForDeleting);
+            $em->remove($attributeForDeleting);
+        }
+
+        $em->persist($this);
+        $em->flush();
+
+        return $this;
+    }
+
+    public function addNewAttributes($em, array $attributes): self
+    {
+        $priceClassAttributes = $this->getPriceClassAttributes();
+        $attributesForDeleting = [];
+
+        foreach ($priceClassAttributes as $priceClassAttribute) {
+            $attribute = $priceClassAttribute->getAttribute();
+
+            if (($key = array_search($attribute, $attributes)) !== false) {
+                unset($attributes[$key]);
+            }
+        }
+
+        foreach ($attributes as $attribute) {
+            $newPriceClassAttribute = new PriceClassAttribute();
+            $newPriceClassAttribute->setAttribute($attribute);
+            $this->addPriceClassAttribute($newPriceClassAttribute);
+            $em->persist($newPriceClassAttribute);
+        }
+
+        $em->persist($this);
+        $em->flush();
+        
         return $this;
     }
 }
