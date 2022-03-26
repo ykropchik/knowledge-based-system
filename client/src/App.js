@@ -4,11 +4,13 @@ import 'antd/dist/antd.css';
 import About from './Pages/About/About';
 import KnowledgeEditor from './Pages/KnowledgeEditor/KnowledgeEditor';
 import Solver from './Pages/Solver/Solver';
+import KnowlendgeBase from './Pages/KnowledgeBase/KnowledgeBase';
 
 const { Header, Footer } = Layout;
 
 const pages = [
     { pageTitle: 'О программе', pageComponent: <About/> },
+    { pageTitle: 'База знаний', pageComponent: <KnowlendgeBase/> },
     { pageTitle: 'Редактор базы знаний', pageComponent: <KnowledgeEditor/> },
     { pageTitle: 'Решатель задач', pageComponent: <Solver/> }
 ]
