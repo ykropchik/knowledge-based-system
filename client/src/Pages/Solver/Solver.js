@@ -166,7 +166,7 @@ function DataInput({ attributes, onSolveStart, onSolveSuccess, onSolveFail }) {
                         };
                     })}
                     components={{ body: { cell: EditableCell } }}
-                    pagination={{ position: ["none", "none"] }}
+                    pagination={false}
                 />
             </Col>
             <Col span={1}>

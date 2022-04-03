@@ -10,11 +10,15 @@ const { Search } = Input;
 const { Option } = Select;
 
 function ScalarTypeEditor({values, onChange}) {
-    const [list, setList] = useState(values ?? []);
+    const [list, setList] = useState([]);
     const [value, setValue] = useState('');
 
     useEffect(() => {
-        setList(values ?? []);
+        if (Array.isArray(values)) {
+            setList(values);
+        } else {
+            setList([]);
+        }
     }, [values]);
 
     const onAddValue = (item) => {
@@ -112,7 +116,7 @@ function BooleanTypeEditor({values, onChange}) {
     }
 
     return (
-        <Checkbox.Group options={options} value={values ?? []} onChange={onChangeValue}/>
+        <Checkbox.Group options={options} value={Array.isArray(values) ? values : []} onChange={onChangeValue}/>
     );
 }
 

@@ -135,6 +135,7 @@ export default function AttributesValueEditor() {
 
     const onSelectClass = (_, priceClass) => {
         setId(priceClass.id);
+        console.log(priceClass)
         setPriceClassAttributes(priceClass.priceclassattributes);
         setSaveAllowed(false);
     };
@@ -158,7 +159,8 @@ export default function AttributesValueEditor() {
         toast.promise(savingPromise, {
             loading: "Сохранение значений",
             success: (res) => {
-                setPriceClassAttributes(res.result);
+                setClasses(res.result);
+                setPriceClassAttributes(res.result.filter(item => item.id === id)[0].priceClassAttributes)
                 return "Значения успешно сохранены";
             },
             error: "Произошла ошибка!",
@@ -215,7 +217,7 @@ export default function AttributesValueEditor() {
                         possibleValues: item.attribute.possibleValues,
                         value: item.value,
                     }))}
-                    pagination={{ position: ["none", "none"] }}
+                    pagination={false}
                     components={{ body: { cell: EditableCell } }}
                     columns={columns.map((col) => {
                         if (!col.editable) {
