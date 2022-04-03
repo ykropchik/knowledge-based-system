@@ -65,7 +65,7 @@ export default function KnowlendgeBase() {
                 }
 
                 if (Array.isArray(text.value)) {
-                    return text.value?.toString();
+                    return text.value?.join(", ");
                 } else {
                     return `${text.value.min} ~ ${text.value.max}`
                 }

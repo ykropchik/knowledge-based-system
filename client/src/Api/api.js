@@ -109,3 +109,12 @@ export async function solveClassification(data) {
         throw new Error(error);
     }
 }
+
+export async function checkCompleteness() {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/knowledge/checkCompleteness`);
+        return response.data;
+    } catch (error) {
+        throw new Error(error);
+    }
+}

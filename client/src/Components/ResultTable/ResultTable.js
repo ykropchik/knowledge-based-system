@@ -1,79 +1,171 @@
-import { Layout, Table } from 'antd';
+import { Divider, Layout, Table } from "antd";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { fetchAttributes, fetchPriceClasses } from "../../Api/api";
 
 const { Content } = Layout;
 
-const columns = [
+const defaultColumn = [
     {
-      title: 'Признак',
-      dataIndex: 'attribute',
-      key: 'attribute',
-      fixed: 'left',
-      width: 200
+        title: "Признаки",
+        dataIndex: "attribute",
+        fixed: "left",
+        render: (text) => text.name,
     },
     {
-      title: 'Введенные данные',
-      dataIndex: 'inputData',
-      key: 'inputData',
-      fixed: 'left',
-      width: 200
+        title: "Введенные данные",
+        dataIndex: "inputData",
+        fixed: "left",
+        render: (text) => text.value,
     },
-    {
-      title: 'менее 3 млн',
-      dataIndex: 'address',
-      key: '1',
-      width: 200
-    },
-    {
-      title: 'от 3 млн до 5 млн',
-      dataIndex: 'address',
-      width: 200
-    },
-    {
-      title: 'от 5 млн до 3 млн',
-      dataIndex: 'address',
-      width: 200
-    },
-    {
-      title: 'от 5 млн до 7 млн',
-      dataIndex: 'address',
-      width: 200
-    },
-    {
-      title: 'от 7 млн до 9 млн',
-      dataIndex: 'address',
-      width: 200
-    },
-    {
-      title: 'от 9 млн до 11 млн',
-      dataIndex: 'address',
-      width: 200
-    },
-    {
-      title: '11 млн и более',
-      dataIndex: 'address',
-      width: 200
-    }
-  ];
-  
-  const data = [];
-  for (let i = 0; i < 100; i++) {
-    data.push({
-      key: i,
-      attribute: `Edrward ${i}`,
-      inputData: 32,
-      address: `London Park no. ${i}`,
-    });
-  }
+];
 
-export default function ResultTable() {
+// function CustomCell({ dataindex, record, colored, children, ...props }) {
+//     const childNode = useMemo(() => getChildNode(dataindex, record, colored), [dataindex, record, colored]);
+
+//     function getChildNode() {
+//         console.log(colored, dataindex)
+//         return <td {...props}>{children}</td>;
+
+//         if (!colored) {         
+//             return <td {...props}>{children}</td>;
+//         }
+
+//         let data = record[dataindex];
+//         console.log(data.value)
+        
+//         if (Array.isArray(data.value)) {
+//             if (data.value.includes(record.inputData)) {
+//                 return (
+//                     <td {...props} style={{ backgroundColor: "#c8e7c8" }}>
+//                         {data.value.join(", ")}
+//                     </td>
+//                 );
+//             } else {
+//                 return (
+//                     <td {...props} style={{ backgroundColor: "#ffccd1" }}>
+//                         {data.value.join(", ")}
+//                     </td>
+//                 );
+//             }
+//         } else {
+//             if (
+//                 data.value.min > record.inputData ||
+//                 data.value.max < record.inputData
+//             ) {
+//                 return (
+//                     <td
+//                         {...props}
+//                         style={{ backgroundColor: "#ffccd1" }}
+//                     >{`${data.value.min} ~ ${data.value.max}`}</td>
+//                 );
+//             } else {
+//                 return (
+//                     <td
+//                         {...props}
+//                         style={{ backgroundColor: "#c8e7c8" }}
+//                     >{`${data.value.min} ~ ${data.value.max}`}</td>
+//                 );
+//             }
+//         }
+//     }
+
+//     return childNode;
+// }
+
+export default function ResultTable({ classes, attributes, inputData }) {
+    const [columns, setColumns] = useState(getColumns(classes));
+    const [data, setData] = useState(
+        prepareData(classes, attributes, inputData)
+    );
+
+    useEffect(() => {
+        setColumns(getColumns(classes));
+    }, [classes]);
+
+    useEffect(() => {
+        setData(prepareData(classes, attributes, inputData));
+        // console.log(prepareData(classes, attributes));
+    }, [classes, attributes, inputData]);
+
+    function getColumns(classes) {
+        let classesColumn = classes.map((item, i) => ({
+            title: item.name,
+            dataIndex: i,
+            render: (text) => {
+                if (!text) {
+                    return '';
+                }
+
+                if (Array.isArray(text.value)) {
+                    return text.value.join(", ");
+                } else {
+                    return `${text.value.min} ~ ${text.value.max}`;
+                }
+            },
+            onCell: (record) => {
+                if (!record[i]) {
+                    return;
+                }
+
+                if (Array.isArray(record[i].value)) {
+                    if (record[i].value.includes(record.inputData.value)) {
+                        return { style: {backgroundColor: "#c8e7c8"} }
+                    } else {
+                        return { style: {backgroundColor: "#ffccd1"} }
+                    }
+                } else {
+                    if (record.inputData.value < record[i].value.min || record.inputData.value > record[i].value.max) {
+                        return { style: {backgroundColor: "#ffccd1"} }
+                    } else {
+                        return { style: {backgroundColor: "#c8e7c8"} }
+                    }
+                }
+            },
+        }));
+
+        return defaultColumn.concat(classesColumn);
+    }
+
+    function prepareData(classes, attributes, inputData) {
+        let prepareAttributes = attributes.map(({ id, ...attribute }) => {
+            let inputAttribute = inputData.filter((elem) => elem.id === id)[0];
+
+            let classesAttributes = classes.map((item) => {
+                let temp = item.priceClassAttributes.filter(
+                    (elem) => elem.attribute.id === id
+                );
+
+                return temp[0];
+            });
+
+            return {
+                attribute: attribute,
+                inputData: inputAttribute,
+                ...classesAttributes,
+            };
+        });
+
+        return prepareAttributes;
+    }
+
     return (
-        <Content style={{ padding: '0 50px' }}>
-            <Table 
-                columns={columns}
+        <Content style={{ padding: "0 50px" }}>
+            <Divider orientation="center">Результат</Divider>
+            <Table
                 dataSource={data}
-                bordered={true}
-                scroll={{ x: 2000, y: 500 }}
-                pagination={{ position: ['none', 'none'] }}/>
+                columns={columns}
+                bordered
+                // components={{ body: { cell: CustomCell } }}
+                scroll={{ x: "max-content" }}
+                pagination={{ position: ["none", "none"] }}
+                onRow={(record) => {
+                    return {
+                        isValid:
+                            record.attribute.type &&
+                            record.attribute.possibleValues,
+                    };
+                }}
+            />
         </Content>
     );
 }

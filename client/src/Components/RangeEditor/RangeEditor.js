@@ -40,7 +40,6 @@ export default function RangeEditor({
                 style={{ margin: 0, display: "inline-block" }}
                 validateStatus={validation.valid}
                 help={validation.message}
-                initialValue={initialValues?.min ?? null}
             >
                 <InputNumber
                     style={{ width: 100 }}
@@ -66,7 +65,6 @@ export default function RangeEditor({
                 name="max"
                 style={{ margin: 0, display: "inline-block" }}
                 validateStatus={validation.valid}
-                initialValue={initialValues?.max ?? null}
             >
                 <InputNumber
                     style={{ width: 100 }}
@@ -74,7 +72,7 @@ export default function RangeEditor({
                     min={possibleValues.min}
                     max={possibleValues.max}
                     placeholder={possibleValues.max}
-                    // defaultValue={initialValues?.max ?? null}
+                    defaultValue={initialValues?.max ?? null}
                     onChange={(value) => onChange("max", value)}
                 />
             </Form.Item>
