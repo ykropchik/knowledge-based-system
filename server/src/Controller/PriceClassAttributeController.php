@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\PriceClassAttributeRepository;
+use App\Repository\PriceClassRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,10 +19,16 @@ use Doctrine\ORM\EntityManagerInterface;
 class PriceClassAttributeController extends ApiController
 {
     private PriceClassAttributeRepository $priceClassAttributeRepository;
+    private PriceClassRepository $priceClassRepository;
     private EntityManagerInterface $em;
 
-    public function __construct(PriceClassAttributeRepository $priceClassAttributeRepository, EntityManagerInterface $em){
+    public function __construct(
+        PriceClassAttributeRepository $priceClassAttributeRepository,
+        PriceClassRepository $priceClassRepository,
+        EntityManagerInterface $em)
+    {
         $this->priceClassAttributeRepository = $priceClassAttributeRepository;
+        $this->priceClassRepository = $priceClassRepository;
         $this->em = $em;
     }
 
@@ -47,7 +54,7 @@ class PriceClassAttributeController extends ApiController
 
             $this->em->flush();
 
-            $priceClasses = $this->priceClassAttributeRepository->findAll();
+            $priceClasses = $this->priceClassRepository->findAll();
             $result = $serializer->serialize($priceClasses, 'json', [AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__']]);
 
             return $this->response($result);
