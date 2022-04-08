@@ -157,7 +157,7 @@ export default function ResultTable({ classes, attributes, inputData }) {
                 bordered
                 // components={{ body: { cell: CustomCell } }}
                 scroll={{ x: "max-content" }}
-                pagination={{ position: ["none", "none"] }}
+                pagination={false}
                 onRow={(record) => {
                     return {
                         isValid:
