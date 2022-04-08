@@ -34,17 +34,17 @@ class SolverController extends ApiController
             $inputData = $request->get('data');
 
             $priceClasses = $this->priceClassRepository->findAll();
-            $result = [];
+            $result = $priceClasses;
 
-            foreach ($priceClasses as $priceClasse) {
+            for ($i=0; $i < count($priceClasses); $i++) { 
                 $attributesArray = [];
-                $validFlag = true;
 
-                if (count($priceClasse->getPriceClassAttributes()) == 0) {
-                    $validFlag = false;
+                if (count($priceClasses[$i]->getPriceClassAttributes()) == 0) {
+                    unset($result[$i]);
+                    continue;
                 }
 
-                foreach ($priceClasse->getPriceClassAttributes() as $priceClassAttribute) {
+                foreach ($priceClasses[$i]->getPriceClassAttributes() as $priceClassAttribute) {
                     $attributesArray[$priceClassAttribute->getAttribute()->getId()] = $priceClassAttribute->getValue();
                 }
 
@@ -52,24 +52,20 @@ class SolverController extends ApiController
                     if (isset($attributesArray[$inputAttr["id"]])) {
                         if (isset($attributesArray[$inputAttr["id"]]["min"])) {
                             if ($attributesArray[$inputAttr["id"]]["min"] > $inputAttr["value"] || $attributesArray[$inputAttr["id"]]["max"] < $inputAttr["value"]) {
-                                $validFlag = false;
+                                unset($result[$i]);
                                 break;
                             }
                         } else {
                             if (!in_array($inputAttr["value"], $attributesArray[$inputAttr["id"]])) {
-                                $validFlag = false;
+                                unset($result[$i]);
                                 break;
                             }
                         }
                     }
                 }
-                
-                if ($validFlag) {
-                    $result[] = $priceClasse;
-                }
             }
             
-            return $this->response($serializer->serialize($result, 'json', [AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__']]));
+            return $this->response($serializer->serialize(array_values($result), 'json', [AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__']]));
         } catch (Exception $e) {
             return $this->response(json_encode($e->getMessage()), Response::HTTP_INTERNAL_SERVER_ERROR);
         }

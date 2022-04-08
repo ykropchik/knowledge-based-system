@@ -21,7 +21,7 @@ class PriceClassAttribute
 
     /**
      * @ORM\ManyToOne(targetEntity=Attribute::class)
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private $attribute;
 
