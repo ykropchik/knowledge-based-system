@@ -14,6 +14,8 @@ export default function PriceClassesEditor() {
     const [id, setId] = useState(null);
     const [attributes, setAttributes] = useState([]);
     const [selectedAttributes, setSelectedAttributes] = useState([]);
+    const [initialSelectedAttributes, setInitialSelectedAttributes] = useState([]);
+    const [saveAllowed, setSaveAllowed] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -43,13 +45,16 @@ export default function PriceClassesEditor() {
             .catch(console.log)
     }
 
-    const onSelectClass = (value, priceClass) => {
+    const onSelectClass = (_, priceClass) => {
         setId(priceClass.id);
         setSelectedAttributes(priceClass.priceclassattributes.map((item) => item.attribute));
+        setInitialSelectedAttributes(priceClass.priceclassattributes.map((item) => item.attribute));
+        setSaveAllowed(false);
     }
 
     const onSelectAttributes = (attributes) => {
         setSelectedAttributes(attributes);
+        setSaveAllowed(JSON.stringify(attributes) !== JSON.stringify(initialSelectedAttributes));
     }
 
     const onSave = () => {
@@ -89,7 +94,7 @@ export default function PriceClassesEditor() {
                             ))
                         }
                 </Select>
-                <Button type="primary" shape="round" icon={<SaveOutlined/>} size={'middle'} onClick={onSave}>Сохранить</Button>
+                <Button type="primary" shape="round" icon={<SaveOutlined/>} size={'middle'} onClick={onSave} disabled={!saveAllowed}>Сохранить</Button>
             </div>
             {
                 id ?

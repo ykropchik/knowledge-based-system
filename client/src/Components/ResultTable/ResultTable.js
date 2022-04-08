@@ -1,6 +1,5 @@
 import { Divider, Layout, Table } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchAttributes, fetchPriceClasses } from "../../Api/api";
+import { useEffect, useState } from "react";
 
 const { Content } = Layout;
 
@@ -15,7 +14,7 @@ const defaultColumn = [
         title: "Введенные данные",
         dataIndex: "inputData",
         fixed: "left",
-        render: (text) => text.value,
+        render: (text) => text?.value,
     },
 ];
 
@@ -84,6 +83,7 @@ export default function ResultTable({ classes, attributes, inputData }) {
 
     useEffect(() => {
         setData(prepareData(classes, attributes, inputData));
+        console.log(prepareData(classes, attributes, inputData))
         // console.log(prepareData(classes, attributes));
     }, [classes, attributes, inputData]);
 
@@ -103,7 +103,7 @@ export default function ResultTable({ classes, attributes, inputData }) {
                 }
             },
             onCell: (record) => {
-                if (!record[i]) {
+                if (!record[i] || !record.inputData) {
                     return;
                 }
 
@@ -145,27 +145,35 @@ export default function ResultTable({ classes, attributes, inputData }) {
             };
         });
 
-        return prepareAttributes;
+        // return prepareAttributes.filter((item) => item.inputData)
+        return prepareAttributes
     }
 
     return (
         <Content style={{ padding: "0 50px" }}>
             <Divider orientation="center">Результат</Divider>
-            <Table
-                dataSource={data}
-                columns={columns}
-                bordered
-                // components={{ body: { cell: CustomCell } }}
-                scroll={{ x: "max-content" }}
-                pagination={false}
-                onRow={(record) => {
-                    return {
-                        isValid:
-                            record.attribute.type &&
-                            record.attribute.possibleValues,
-                    };
-                }}
-            />
+            {
+                classes.length !== 0 
+                ?
+                <Table
+                    dataSource={data}
+                    columns={columns}
+                    bordered
+                    // components={{ body: { cell: CustomCell } }}
+                    scroll={{ x: "max-content" }}
+                    pagination={false}
+                    onRow={(record) => {
+                        return {
+                            isValid:
+                                record.attribute.type &&
+                                record.attribute.possibleValues,
+                        };
+                    }}
+                />
+                :
+                <div>нет решений</div>
+            }
+            
         </Content>
     );
 }

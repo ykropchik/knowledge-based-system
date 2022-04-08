@@ -103,15 +103,15 @@ function SingleValueSelector({ possibleValues, onSave }) {
 const tempInputData = [
     {
         "id": 232,
-        "value": "Да"
-    },
-    {
-        "id": 234,
-        "value": "Да"
+        "value": "Эгершельд"
     },
     {
         "id": 233,
-        "value": 1911
+        "value": "Кирпичный"
+    },
+    {
+        "id": 234,
+        "value": "Вторичка"
     }
 ]
 

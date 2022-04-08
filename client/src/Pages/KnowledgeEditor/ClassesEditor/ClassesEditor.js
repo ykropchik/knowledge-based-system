@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { List, Divider, Input, Skeleton } from "antd";
+import { List, Divider, Input, Skeleton, Button } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import s from "./ClassesEditor.module.sass";
 import { createClass, fetchPriceClasses, removeClass } from "../../../Api/api";
 import toast, { Toaster } from "react-hot-toast";
-
-const { Search } = Input;
 
 const defaultClasses = [
     { name: "какой-то класс 1" },
@@ -42,18 +40,22 @@ export default function ClassesEditor() {
         };
     }, []);
 
-    const onAddClass = (value) => {
-        if (value) {
-            const creatingPromice = createClass({ name: value });
+    const onAddClass = () => {
+        const creatingPromice = createClass({ name: newClassName });
             toast.promise(creatingPromice, {
                 loading: "Создание нового класса",
                 success: (res) => {
                     setClasses(res.result);
                     return "Новый класс создан";
                 },
-                error: "Произошла ошибка!",
+                error: (err) => {
+                    if (err.status === 409) {
+                        return "Класс с таким названием уже существует!";
+                    }
+
+                    return "Произошла ошибка!"
+                }
             });
-        }
         setNewClassName("");
     };
 
@@ -104,15 +106,20 @@ export default function ClassesEditor() {
                 </div>
 
                 <div className={s.newClassContainer}>
-                    <Search
-                        style={{ position: "sticky", top: 32 }}
-                        value={newClassName}
-                        placeholder="Введите название класса"
-                        allowClear
-                        onSearch={onAddClass}
-                        onChange={onClassNameChange}
-                        enterButton={<PlusOutlined />}
-                    />
+                    <Input.Group
+                        compact
+                        style={{ display: "flex", position: "sticky", top: 32 }}
+                    >
+                        <Input
+                            allowClear
+                            value={newClassName}
+                            onChange={onClassNameChange}
+                            placeholder="Введите название класса"
+                        />
+                        <Button type="primary" disabled={!newClassName.trim()} onClick={onAddClass}>
+                            <PlusOutlined />
+                        </Button>
+                    </Input.Group>
                 </div>
             </div>
             <Toaster position="top-right" reverseOrder={false} />

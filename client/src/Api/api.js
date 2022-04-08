@@ -6,7 +6,7 @@ export async function fetchPriceClasses() {
         const response = await axios.get(`${API_BASE_URL}/priceClasses/get`);
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -18,7 +18,7 @@ export async function createClass(newClass) {
         );
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -29,7 +29,7 @@ export async function removeClass(classId) {
         );
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -41,7 +41,7 @@ export async function setAttributesToPriceClass(classId, idArray) {
         );
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -50,7 +50,7 @@ export async function fetchAttributes() {
         const response = await axios.get(`${API_BASE_URL}/attributes/get`);
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -62,7 +62,7 @@ export async function createAttribute(newAttribute) {
         );
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -73,7 +73,7 @@ export async function removeAttribute(attributeId) {
         );
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -85,7 +85,7 @@ export async function setAttributeValues(attributeId, data) {
         );
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -97,7 +97,7 @@ export async function setPriceClassAttributesValues(data) {
         );
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -106,7 +106,7 @@ export async function solveClassification(data) {
         const response = await axios.post(`${API_BASE_URL}/solver`, data);
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }
 
@@ -115,6 +115,6 @@ export async function checkCompleteness() {
         const response = await axios.get(`${API_BASE_URL}/knowledge/checkCompleteness`);
         return response.data;
     } catch (error) {
-        throw new Error(error);
+        throw error.response;
     }
 }

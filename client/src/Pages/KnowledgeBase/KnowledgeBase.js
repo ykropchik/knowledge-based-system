@@ -60,8 +60,12 @@ export default function KnowlendgeBase() {
             title: item.name,
             dataIndex: i,
             render: (text) => {
-                if (!text || !text.value) {
-                    return 'Не задано';
+                if (!text) {
+                    return;
+                }
+
+                if (!!text.value) {
+                    return <b style={{ color: "#a6a6a6" }}>Значение не задано</b>;
                 }
 
                 if (Array.isArray(text.value)) {
@@ -72,7 +76,7 @@ export default function KnowlendgeBase() {
             }
         }));
 
-        console.log(classesColumn)
+        // console.log(classesColumn)
 
         return defaultColumn.concat(classesColumn);
     }
@@ -101,9 +105,6 @@ export default function KnowlendgeBase() {
                 bordered
                 scroll={{ x: "max-content" }}
                 pagination={false}
-                onRow={(record) => {
-                    return { isValid: record.attribute.type && record.attribute.possibleValues}
-                }}
             />
         </Content>
     );
