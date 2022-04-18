@@ -60,18 +60,31 @@ export default function KnowlendgeBase() {
             title: item.name,
             dataIndex: i,
             render: (text) => {
+                console.log(text)
                 if (!text) {
                     return;
                 }
 
-                if (!!text.value) {
+                if (!text.value && !!text.value) {
                     return <b style={{ color: "#a6a6a6" }}>Значение не задано</b>;
                 }
 
                 if (Array.isArray(text.value)) {
                     return text.value?.join(", ");
                 } else {
-                    return `${text.value?.min} ~ ${text.value?.max}`
+                    if (text.value?.min === null) {
+                        return text.value?.max;
+                    }
+
+                    if (text.value?.min === null) {
+                        return text.value?.min;
+                    }
+
+                    if (text.value?.min === text.value?.max) {
+                        return text.value?.min;
+                    }
+
+                    return `${text.value?.min} ~ ${text.value?.max}`;
                 }
             }
         }));

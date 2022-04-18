@@ -18,59 +18,6 @@ const defaultColumn = [
     },
 ];
 
-// function CustomCell({ dataindex, record, colored, children, ...props }) {
-//     const childNode = useMemo(() => getChildNode(dataindex, record, colored), [dataindex, record, colored]);
-
-//     function getChildNode() {
-//         console.log(colored, dataindex)
-//         return <td {...props}>{children}</td>;
-
-//         if (!colored) {         
-//             return <td {...props}>{children}</td>;
-//         }
-
-//         let data = record[dataindex];
-//         console.log(data.value)
-        
-//         if (Array.isArray(data.value)) {
-//             if (data.value.includes(record.inputData)) {
-//                 return (
-//                     <td {...props} style={{ backgroundColor: "#c8e7c8" }}>
-//                         {data.value.join(", ")}
-//                     </td>
-//                 );
-//             } else {
-//                 return (
-//                     <td {...props} style={{ backgroundColor: "#ffccd1" }}>
-//                         {data.value.join(", ")}
-//                     </td>
-//                 );
-//             }
-//         } else {
-//             if (
-//                 data.value.min > record.inputData ||
-//                 data.value.max < record.inputData
-//             ) {
-//                 return (
-//                     <td
-//                         {...props}
-//                         style={{ backgroundColor: "#ffccd1" }}
-//                     >{`${data.value.min} ~ ${data.value.max}`}</td>
-//                 );
-//             } else {
-//                 return (
-//                     <td
-//                         {...props}
-//                         style={{ backgroundColor: "#c8e7c8" }}
-//                     >{`${data.value.min} ~ ${data.value.max}`}</td>
-//                 );
-//             }
-//         }
-//     }
-
-//     return childNode;
-// }
-
 export default function ResultTable({ classes, attributes, inputData }) {
     const [columns, setColumns] = useState(getColumns(classes));
     const [data, setData] = useState(
@@ -99,7 +46,19 @@ export default function ResultTable({ classes, attributes, inputData }) {
                 if (Array.isArray(text.value)) {
                     return text.value.join(", ");
                 } else {
-                    return `${text.value.min} ~ ${text.value.max}`;
+                    if (text.value?.min === null) {
+                        return text.value?.max;
+                    }
+
+                    if (text.value?.min === null) {
+                        return text.value?.min;
+                    }
+
+                    if (text.value?.min === text.value?.max) {
+                        return text.value?.min;
+                    }
+
+                    return `${text.value?.min} ~ ${text.value?.max}`;
                 }
             },
             onCell: (record) => {

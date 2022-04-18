@@ -15,11 +15,12 @@ import { fetchAttributes, solveClassification, checkCompleteness } from "../../A
 import { CalculatorOutlined, SafetyOutlined, LoadingOutlined } from "@ant-design/icons";
 import toast, { Toaster } from "react-hot-toast";
 import ResultTable from "../../Components/ResultTable/ResultTable";
+import { TEST_SETS } from "./testSets";
 
 const { Option } = Select;
 const { Content } = Layout;
 
-function EditableCell({ record, editable, onSave, children, ...props }) {
+function EditableCell({ record, editable, defaultValues, onSave, children, ...props }) {
     const [childType, setChildType] = useState();
 
     useEffect(() => {
@@ -47,19 +48,32 @@ function EditableCell({ record, editable, onSave, children, ...props }) {
                 <SingleValueSelector
                     possibleValues={record.possibleValues}
                     onSave={(value) => onSave({ id: record.id, value: value })}
+                    defaultValue={defaultValues.filter(item => item.id === record.id)[0]?.value}
                 />
             )}
             {childType === "number" && (
                 <NumberInput
                     possibleValues={record.possibleValues}
                     onSave={(value) => onSave({ id: record.id, value: value })}
+                    defaultValue={defaultValues.filter(item => item.id === record.id)[0]?.value}
                 />
             )}
         </td>
     );
 }
 
-function NumberInput({ possibleValues, onSave }) {
+function NumberInput({ possibleValues, onSave, defaultValue }) {
+    const [value, setValue] = useState(defaultValue);
+
+    useEffect(() => {
+        setValue(defaultValue)
+    }, [defaultValue]);
+
+    const onChange = (value) => {
+        setValue(value);
+        onSave(value);
+    }
+
     return (
         <>
             <InputNumber
@@ -68,7 +82,8 @@ function NumberInput({ possibleValues, onSave }) {
                 min={possibleValues.min}
                 max={possibleValues.max}
                 placeholder={`${possibleValues.min} ~ ${possibleValues.max}`}
-                onChange={(value) => onSave(value)}
+                onChange={onChange}
+                value={value}
             />
             <span
                 style={{
@@ -84,14 +99,26 @@ function NumberInput({ possibleValues, onSave }) {
     );
 }
 
-function SingleValueSelector({ possibleValues, onSave }) {
+function SingleValueSelector({ possibleValues, onSave, defaultValue }) {
+    const [value, setValue] = useState(defaultValue);
+
+    useEffect(() => {
+        setValue(defaultValue)
+    }, [defaultValue]);
+
+    const onChange = (_, option) => {
+        setValue(option.value);
+        onSave(option.value);
+    }
+
     return (
         <Select
             allowClear
             placeholder={"Выберите значение"}
             style={{ width: "100%" }}
             maxTagCount={"responsive"}
-            onChange={(_, option) => onSave(option.value)}
+            onChange={onChange}
+            value={value}
         >
             {possibleValues.map((item) => (
                 <Option key={item}>{item}</Option>
@@ -100,24 +127,10 @@ function SingleValueSelector({ possibleValues, onSave }) {
     );
 }
 
-const tempInputData = [
-    {
-        "id": 232,
-        "value": "Эгершельд"
-    },
-    {
-        "id": 233,
-        "value": "Кирпичный"
-    },
-    {
-        "id": 234,
-        "value": "Вторичка"
-    }
-]
-
 function DataInput({ attributes, onSolveStart, onSolveSuccess, onSolveFail }) {
     const [solveAllowed, setSolveAllowed] = useState(true);
-    const [inputData, setInputData] = useState(tempInputData);
+    const [inputData, setInputData] = useState([]);
+    const [testSetNumber, setTestSetNumber] = useState(0);
 
     const onSave = (value) => {
         setSolveAllowed(true);
@@ -144,6 +157,16 @@ function DataInput({ attributes, onSolveStart, onSolveSuccess, onSolveFail }) {
         });
     };
 
+    const loadTestData = () => {
+        let testData = attributes.map((attribute, i) => ({ id: attribute.id, value: TEST_SETS[testSetNumber][i] }));
+        setInputData(testData);
+        if (testSetNumber + 1 === TEST_SETS.length) {
+            setTestSetNumber(0);
+        } else {
+            setTestSetNumber(old => old + 1);
+        }
+    }
+
     return (
         <Row gutter={[16, 16]}>
             <Col span={12} offset={6}>
@@ -160,6 +183,7 @@ function DataInput({ attributes, onSolveStart, onSolveSuccess, onSolveFail }) {
                                 return {
                                     record,
                                     editable: col.editable,
+                                    defaultValues: inputData,
                                     onSave: onSave,
                                 };
                             },
@@ -179,6 +203,15 @@ function DataInput({ attributes, onSolveStart, onSolveSuccess, onSolveFail }) {
                     onClick={solve}
                 >
                     Решить
+                </Button>
+                <Button
+                    type="primary"
+                    shape="round"
+                    size={"middle"}
+                    onClick={loadTestData}
+                    style={{ marginTop: 12}}
+                >
+                    Тестовые данные
                 </Button>
             </Col>
         </Row>

@@ -176,12 +176,14 @@ export default function ToleranceRangeEditor() {
 
     const onChangeAttributeType = (e) => {
         setType(e.target.value);
+        setValues(JSON.stringify(e.target.value) === JSON.stringify(initialState.type) ? initialState.values : null);
         setSaveAllowed(JSON.stringify(e.target.value) !== JSON.stringify(initialState.type));
     }
 
     const onChangeValues = (values) => {
         setSaveAllowed(JSON.stringify(values) !== JSON.stringify(initialState.values));
         setValues(values);
+        console.log(values);
     }
 
     const save = () => {
