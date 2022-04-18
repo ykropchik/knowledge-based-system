@@ -1,6 +1,5 @@
 import { Divider, Layout, Table } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchAttributes, fetchPriceClasses } from "../../Api/api";
+import { useEffect, useState } from "react";
 
 const { Content } = Layout;
 
@@ -15,62 +14,9 @@ const defaultColumn = [
         title: "Введенные данные",
         dataIndex: "inputData",
         fixed: "left",
-        render: (text) => text.value,
+        render: (text) => text?.value,
     },
 ];
-
-// function CustomCell({ dataindex, record, colored, children, ...props }) {
-//     const childNode = useMemo(() => getChildNode(dataindex, record, colored), [dataindex, record, colored]);
-
-//     function getChildNode() {
-//         console.log(colored, dataindex)
-//         return <td {...props}>{children}</td>;
-
-//         if (!colored) {         
-//             return <td {...props}>{children}</td>;
-//         }
-
-//         let data = record[dataindex];
-//         console.log(data.value)
-        
-//         if (Array.isArray(data.value)) {
-//             if (data.value.includes(record.inputData)) {
-//                 return (
-//                     <td {...props} style={{ backgroundColor: "#c8e7c8" }}>
-//                         {data.value.join(", ")}
-//                     </td>
-//                 );
-//             } else {
-//                 return (
-//                     <td {...props} style={{ backgroundColor: "#ffccd1" }}>
-//                         {data.value.join(", ")}
-//                     </td>
-//                 );
-//             }
-//         } else {
-//             if (
-//                 data.value.min > record.inputData ||
-//                 data.value.max < record.inputData
-//             ) {
-//                 return (
-//                     <td
-//                         {...props}
-//                         style={{ backgroundColor: "#ffccd1" }}
-//                     >{`${data.value.min} ~ ${data.value.max}`}</td>
-//                 );
-//             } else {
-//                 return (
-//                     <td
-//                         {...props}
-//                         style={{ backgroundColor: "#c8e7c8" }}
-//                     >{`${data.value.min} ~ ${data.value.max}`}</td>
-//                 );
-//             }
-//         }
-//     }
-
-//     return childNode;
-// }
 
 export default function ResultTable({ classes, attributes, inputData }) {
     const [columns, setColumns] = useState(getColumns(classes));
@@ -84,6 +30,7 @@ export default function ResultTable({ classes, attributes, inputData }) {
 
     useEffect(() => {
         setData(prepareData(classes, attributes, inputData));
+        console.log(prepareData(classes, attributes, inputData))
         // console.log(prepareData(classes, attributes));
     }, [classes, attributes, inputData]);
 
@@ -99,11 +46,23 @@ export default function ResultTable({ classes, attributes, inputData }) {
                 if (Array.isArray(text.value)) {
                     return text.value.join(", ");
                 } else {
-                    return `${text.value.min} ~ ${text.value.max}`;
+                    if (text.value?.min === null) {
+                        return text.value?.max;
+                    }
+
+                    if (text.value?.min === null) {
+                        return text.value?.min;
+                    }
+
+                    if (text.value?.min === text.value?.max) {
+                        return text.value?.min;
+                    }
+
+                    return `${text.value?.min} ~ ${text.value?.max}`;
                 }
             },
             onCell: (record) => {
-                if (!record[i]) {
+                if (!record[i] || !record.inputData) {
                     return;
                 }
 
@@ -145,27 +104,35 @@ export default function ResultTable({ classes, attributes, inputData }) {
             };
         });
 
-        return prepareAttributes;
+        // return prepareAttributes.filter((item) => item.inputData)
+        return prepareAttributes
     }
 
     return (
         <Content style={{ padding: "0 50px" }}>
             <Divider orientation="center">Результат</Divider>
-            <Table
-                dataSource={data}
-                columns={columns}
-                bordered
-                // components={{ body: { cell: CustomCell } }}
-                scroll={{ x: "max-content" }}
-                pagination={false}
-                onRow={(record) => {
-                    return {
-                        isValid:
-                            record.attribute.type &&
-                            record.attribute.possibleValues,
-                    };
-                }}
-            />
+            {
+                classes.length !== 0 
+                ?
+                <Table
+                    dataSource={data}
+                    columns={columns}
+                    bordered
+                    // components={{ body: { cell: CustomCell } }}
+                    scroll={{ x: "max-content" }}
+                    pagination={false}
+                    onRow={(record) => {
+                        return {
+                            isValid:
+                                record.attribute.type &&
+                                record.attribute.possibleValues,
+                        };
+                    }}
+                />
+                :
+                <div>нет решений</div>
+            }
+            
         </Content>
     );
 }

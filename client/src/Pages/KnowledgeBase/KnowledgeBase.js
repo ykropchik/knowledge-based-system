@@ -60,19 +60,36 @@ export default function KnowlendgeBase() {
             title: item.name,
             dataIndex: i,
             render: (text) => {
-                if (!text || !text.value) {
-                    return 'Не задано';
+                console.log(text)
+                if (!text) {
+                    return;
+                }
+
+                if (!text.value && !!text.value) {
+                    return <b style={{ color: "#a6a6a6" }}>Значение не задано</b>;
                 }
 
                 if (Array.isArray(text.value)) {
                     return text.value?.join(", ");
                 } else {
-                    return `${text.value?.min} ~ ${text.value?.max}`
+                    if (text.value?.min === null) {
+                        return text.value?.max;
+                    }
+
+                    if (text.value?.min === null) {
+                        return text.value?.min;
+                    }
+
+                    if (text.value?.min === text.value?.max) {
+                        return text.value?.min;
+                    }
+
+                    return `${text.value?.min} ~ ${text.value?.max}`;
                 }
             }
         }));
 
-        console.log(classesColumn)
+        // console.log(classesColumn)
 
         return defaultColumn.concat(classesColumn);
     }
@@ -101,9 +118,6 @@ export default function KnowlendgeBase() {
                 bordered
                 scroll={{ x: "max-content" }}
                 pagination={false}
-                onRow={(record) => {
-                    return { isValid: record.attribute.type && record.attribute.possibleValues}
-                }}
             />
         </Content>
     );

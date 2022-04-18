@@ -142,11 +142,12 @@ const attributeType = {
 }
 
 export default function ToleranceRangeEditor() {
-    const [isLoading, setLoading] = useState(true);
     const [attributes, setAttributes] = useState(defaultAttributes);
     const [id, setId] = useState(undefined);
+    const [saveAllowed, setSaveAllowed] = useState(false);
     const [type, setType] = useState(null);
     const [values, setValues] = useState(undefined);
+    const [initialState, setInitialState] = useState({ type: null, values: undefined });
 
     useEffect(() => {
         let isMounted = true;
@@ -156,7 +157,6 @@ export default function ToleranceRangeEditor() {
     }, []);
 
     function getAttributes(isMounted) {
-        setLoading(true);
         fetchAttributes()
             .then(res => {
                 if (isMounted) {
@@ -164,21 +164,26 @@ export default function ToleranceRangeEditor() {
                 }
             })
             .catch(console.log)
-            .finally(() => setLoading(false))
     }
 
-    const onSelectAttribute = (value, attribute) => {
+    const onSelectAttribute = (_, attribute) => {
         setId(attribute.id);
         setType(attribute.type);
         setValues(attribute.possiblevalues);
+        setInitialState({ type: attribute.type, values: attribute.possiblevalues });
+        setSaveAllowed(false);
     }
 
     const onChangeAttributeType = (e) => {
         setType(e.target.value);
+        setValues(JSON.stringify(e.target.value) === JSON.stringify(initialState.type) ? initialState.values : null);
+        setSaveAllowed(JSON.stringify(e.target.value) !== JSON.stringify(initialState.type));
     }
 
     const onChangeValues = (values) => {
+        setSaveAllowed(JSON.stringify(values) !== JSON.stringify(initialState.values));
         setValues(values);
+        console.log(values);
     }
 
     const save = () => {
@@ -219,7 +224,7 @@ export default function ToleranceRangeEditor() {
                             ))
                         }
                 </Select>
-                <Button type="primary" shape="round" icon={<SaveOutlined/>} size={'middle'} onClick={save}>Сохранить</Button>
+                <Button type="primary" shape="round" icon={<SaveOutlined/>} size={'middle'} onClick={save} disabled={!saveAllowed}>Сохранить</Button>
             </div>
             {
                 id ?

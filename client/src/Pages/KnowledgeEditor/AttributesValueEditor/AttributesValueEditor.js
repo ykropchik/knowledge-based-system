@@ -22,46 +22,31 @@ function EditableCell({
     children,
     ...props
 }) {
-    const childType = useMemo(
-        () => getChildType(editable, record),
-        [editable, record]
-    );
+    const [childNode, setChildNode] = useState(children);
 
-    function getChildType(editable, record) {
-        if (!editable) {
-            return "usual";
-        }
-
-        if (Array.isArray(record.possibleValues)) {
-            return "selector";
-        } else if (record.possibleValues !== null) {
-            return "range";
-        } else {
-            return "usual";
-        }
-    }
+    useEffect(() => {
+        setChildNode(getChildNode());
+    }, []);
 
     const save = (value) => {
         onSave({ id: record.id, value: value });
     };
 
-    let childNode;
+    function getChildNode() {
+        if (!editable) {
+            return children;
+        }
 
-    switch (childType) {
-        case "usual":
-            childNode = children;
-            break;
-        case "selector":
-            childNode = (
+        if (Array.isArray(record.possibleValues)) {
+            return (
                 <MultiValueSelector
                     possibleValues={record.possibleValues}
                     initialValues={record.value ?? []}
                     onSave={save}
                 />
             );
-            break;
-        case "range":
-            childNode = (
+        } else if (record.possibleValues) {
+            return (
                 <RangeEditor
                     possibleValues={record.possibleValues}
                     initialValues={record.value}
@@ -69,10 +54,9 @@ function EditableCell({
                     onSaveFailed={onSaveFailed}
                 />
             );
-            break;
-        default:
-            childNode = children;
-            break;
+        } else {
+            return <b style={{ color: "red" }}>Не задана ОДЗ</b>;
+        }
     }
 
     return <td {...props}>{childNode}</td>;
@@ -135,15 +119,15 @@ export default function AttributesValueEditor() {
 
     const onSelectClass = (_, priceClass) => {
         setId(priceClass.id);
-        console.log(priceClass)
         setPriceClassAttributes(priceClass.priceclassattributes);
         setSaveAllowed(false);
+        setSavedData([]);
     };
 
     const onSave = (value) => {
         setSaveAllowed(true);
-        setSavedData([
-            ...savedData.filter((item) => item.id !== value.id),
+        setSavedData((test) => [
+            ...test.filter((item) => item.id !== value.id),
             value,
         ]);
     };
