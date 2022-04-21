@@ -30,7 +30,6 @@ export default function ResultTable({ classes, attributes, inputData }) {
 
     useEffect(() => {
         setData(prepareData(classes, attributes, inputData));
-        console.log(prepareData(classes, attributes, inputData))
         // console.log(prepareData(classes, attributes));
     }, [classes, attributes, inputData]);
 
@@ -64,6 +63,10 @@ export default function ResultTable({ classes, attributes, inputData }) {
             onCell: (record) => {
                 if (!record[i] || !record.inputData) {
                     return;
+                }
+
+                if (record.inputData.value === null) {
+                    return { style: {backgroundColor: "#ffccd1"} };
                 }
 
                 if (Array.isArray(record[i].value)) {

@@ -111,6 +111,11 @@ function SingleValueSelector({ possibleValues, onSave, defaultValue }) {
         onSave(option.value);
     }
 
+    const onClear = () => {
+        setValue(null);
+        onSave(null);
+    }
+
     return (
         <Select
             allowClear
@@ -118,6 +123,7 @@ function SingleValueSelector({ possibleValues, onSave, defaultValue }) {
             style={{ width: "100%" }}
             maxTagCount={"responsive"}
             onChange={onChange}
+            onClear={onClear}
             value={value}
         >
             {possibleValues.map((item) => (
@@ -143,7 +149,8 @@ function DataInput({ attributes, onSolveStart, onSolveSuccess, onSolveFail }) {
     const solve = () => {
         // console.log(JSON.stringify({ data: inputData }));
         onSolveStart(inputData);
-        const solvePromise = solveClassification({ data: inputData });
+        let filteredData = inputData.filter(item => item.value !== null)
+        const solvePromise = solveClassification({ data: filteredData });
         toast.promise(solvePromise, {
             loading: "Решения задачи",
             success: (res) => {
@@ -262,6 +269,7 @@ export default function Solver() {
                     .then((res) => {
                         setAttributes(prepareAttributes(res.result));
                         setStatus(STATUS.checkedSuccessfully);
+                        toast.success("База знаний спешно прошла проверку!");
                     })
                     .catch(console.log);
                 } else {
@@ -272,7 +280,9 @@ export default function Solver() {
     }
 
     const onSolveStart = (data) => {
-        setInputData(data);
+        let defaultData = attributes.map(item => ({ id: item.id, value: null }));
+        defaultData = defaultData.filter(item => !data.some((elem) => elem.id === item.id)); 
+        setInputData(defaultData.concat(data));
         setStatus(STATUS.solving);
         //console.log(data)
     }
